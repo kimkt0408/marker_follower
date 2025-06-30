@@ -68,34 +68,50 @@ while True:
 
         found_marker = True
 
-        tvec = det["tvec"]   # x, y, z in camera frame
+        tvec = det["tvec"]  # Translation vector(Right-handed Rule) w.r.t. camera frame, X: Right, Y: Down, Z: Forward
         corners = det["corners"]
 
-        # Compute marker center in image
         pts = corners.reshape(-1, 2)
         cX = np.mean(pts[:, 0])
 
         error_px = cX - image_center_x
-        omega = -k_angular * error_px / (frame_width / 2)
+        omega = k_angular * error_px / (frame_width / 2)
         omega = np.clip(omega, -max_angular_speed, max_angular_speed)
 
-        # Compute forward distance
-        x = tvec[0]    # forward distance
-        longitudinal_error = x - desired_distance
+        z = tvec[2]
+        longitudinal_error = z - desired_distance
         vx = k_linear * longitudinal_error
         vx = np.clip(vx, -max_linear_speed, max_linear_speed)
 
-        print(f"[ID 1 FOUND] | CenterX={cX:.1f}px | Error={error_px:.1f}px")
-        print(f"cmd_vel: linear={vx:.3f} m/s, angular={np.degrees(omega):.2f} deg/s")
-        print("----------------------------------------------------------")
-        break  # Only process the first matching ID=1 marker
+        # Draw text on the image
+        status_text = f"[ID 1 FOUND] CenterX={cX:.1f}px | Error={error_px:.1f}px"
+        vel_text = f"cmd_vel: linear={vx:.3f} m/s, angular={np.degrees(omega):.2f} deg/s"
+
+        cv2.putText(
+            annotated, status_text, (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2
+        )
+        cv2.putText(
+            annotated, vel_text, (10, 60),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2
+        )
+        break
 
     if not found_marker:
         vx = 0.0
         omega = omega_search
-        print("[NO ID 1] Rotating in-place to search...")
-        print(f"cmd_vel: linear={vx:.3f} m/s, angular={np.degrees(omega):.2f} deg/s")
-        print("----------------------------------------------------------")
+
+        status_text = "[NO ID 1] Rotating in-place to search..."
+        vel_text = f"cmd_vel: linear={vx:.3f} m/s, angular={np.degrees(omega):.2f} deg/s"
+
+        cv2.putText(
+            annotated, status_text, (10, 30),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
+        )
+        cv2.putText(
+            annotated, vel_text, (10, 60),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2
+        )
 
     # Show result
     cv2.imshow("Video with detected markers", annotated)
