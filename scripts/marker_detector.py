@@ -8,12 +8,14 @@ class MarkerDetector:
                  camera_matrix=None,
                  dist_coeffs=None):
         
+        self.image_width = 640
+        self.image_height = 480
         self.marker_length = marker_length
         self.aruco_dict = cv2.aruco.getPredefinedDictionary(aruco_dict_type)
         self.detector_params = cv2.aruco.DetectorParameters()
         self.detector = cv2.aruco.ArucoDetector(self.aruco_dict, self.detector_params)
         
-        # Default to dummy intrinsics if not provided
+        # TODO: Modify the camera matrix and distortion coefficients
         if camera_matrix is None:
             camera_matrix = np.array([[600, 0, 320],
                                       [0, 600, 240],
@@ -90,3 +92,54 @@ class MarkerDetector:
                 })
         
         return annotated, detections
+
+    def compute_velocity(self, det, 
+                        desired_distance,
+                        k_linear,
+                        k_angular,
+                        max_linear_speed,
+                        max_angular_speed):
+        """
+        Compute linear and angular velocities from a marker detection.
+        
+        Args:
+            det: detection dict (contains "tvec" and "corners")
+            desired_distance: target distance to the marker
+            k_linear: linear control gain
+            k_angular: angular control gain
+            max_linear_speed: max linear velocity (m/s)
+            max_angular_speed: max angular velocity (rad/s)
+        
+        Returns:
+            vx: linear velocity (m/s)
+            omega: angular velocity (rad/s)
+            extra_info: dict with debug info
+        """
+        tvec = det["tvec"]
+        corners = det["corners"]
+
+        # Compute marker center in image
+        pts = corners.reshape(-1, 2)
+        cX = np.mean(pts[:, 0])
+
+        image_center_x = self.image_width / 2
+        error_px = cX - image_center_x
+
+        # Angular velocity from pixel error
+        omega = -k_angular * error_px / (self.image_width / 2)
+        omega = np.clip(omega, -max_angular_speed, max_angular_speed)
+
+        # Linear velocity from distance along Z axis
+        z = tvec[2]
+        longitudinal_error = z - desired_distance
+        vx = k_linear * longitudinal_error
+        vx = np.clip(vx, -max_linear_speed, max_linear_speed)
+
+        extra_info = {
+            "cX": cX,
+            "error_px": error_px,
+            "z": z,
+            "longitudinal_error": longitudinal_error
+        }
+
+        return vx, omega, extra_info

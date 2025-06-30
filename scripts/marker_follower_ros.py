@@ -73,22 +73,22 @@ def image_callback(msg):
             rospy.Time(0),
             rospy.Duration(1.0)
         )
-        pose_base = tf2_geometry_msgs.do_transform_pose(pose_cam, transform)
+        # pose_base = tf2_geometry_msgs.do_transform_pose(pose_cam, transform)
 
-        x = pose_base.pose.position.x
-        y = pose_base.pose.position.y
+        # use pixel error for angular velocity
+        vx, omega, info = detector.compute_velocity(
+            det,
+            desired_distance,
+            k_linear,
+            k_angular,
+            max_linear_speed,
+            max_angular_speed
+        )
 
-        distance = np.sqrt(x**2 + y**2)
-        angle = np.arctan2(y, x)
+        z = info.get("z", tvec[2])  # use Z from info if available, else from tvec
+        error_px = info.get("error_px", 0.0)  # pixel error in X direction
 
-        linear_error = distance - desired_distance
-        vx = k_linear * linear_error
-        omega = k_angular * angle
-
-        vx = np.clip(vx, -max_linear_speed, max_linear_speed)
-        omega = np.clip(omega, -max_angular_speed, max_angular_speed)
-
-        if distance < desired_distance + 0.05:
+        if z < desired_distance + 0.05:
             rospy.loginfo("Reached target distance. Stopping.")
             stop_robot()
             return
@@ -99,10 +99,11 @@ def image_callback(msg):
         cmd_pub.publish(cmd)
 
         rospy.loginfo_throttle(1,
-            f"Marker {det['id']}: distance={distance:.2f}m angle={np.degrees(angle):.1f}°")
+            f"Marker {det['id']}: distance={z:.2f} m, center error={error_px:.1f} px")
         rospy.loginfo_throttle(1,
             f"Control: linear={vx:.2f} m/s angular={np.degrees(omega):.1f}°/s")
         print("=================================================")
+
 
     except Exception as e:
         rospy.logwarn_throttle(2, f"TF error: {e}")
