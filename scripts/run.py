@@ -27,7 +27,7 @@ omega_search = np.radians(1)   # about 1 deg/s
 # -----------------------------
 # Open video
 # -----------------------------
-video_path = "/home/kimkt0408/bagfiles/2025-06-30-08-20-43.mp4"
+video_path = "../examples/2025-06-30-08-20-43.mp4"
 
 cap = cv2.VideoCapture(video_path)
 
@@ -76,7 +76,7 @@ while True:
             max_linear_speed,
             max_angular_speed
         )
-        
+
         # Optional debug
         status_text = f"[ID 1 FOUND] CenterX={info['cX']:.1f}px | Error={info['error_px']:.1f}px"
         vel_text = f"cmd_vel: linear={vx:.3f} m/s, angular={np.degrees(omega):.2f} deg/s"
