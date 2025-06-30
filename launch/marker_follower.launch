@@ -1,0 +1,12 @@
+<launch>
+  <arg name="bag_file" default="/home/kimkt0408/bagfiles/2025-06-30-08-20-43.bag" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_pub"
+        args="1.0 0.0 0.0 0 0 0 base_link head_camera" />
+
+  <node pkg="marker_follower" type="marker_follower.py" name="marker_follower" output="screen" />
+
+  <node pkg="rosbag" type="play" name="rosbag_play"
+        args="$(arg bag_file) --clock" />
+
+</launch>
