@@ -16,8 +16,8 @@ A Python-based system for detecting ArUco markers in images or video, and comput
 - Member methods:
   - `detect()`: Detect ArUco markers in the image frame:
     - Uses OpenCV’s ArUco module to:
-    - Detect markers in images.
-    - Estimate each marker’s 3D pose (`rvec`, `tvec`) relative to the camera.
+      - Detect markers in images.
+      - Estimate each marker’s 3D pose (`rvec`, `tvec`) relative to the camera.
   - `compute_velocity()`: Compute linear and angular velocities based on:
     - Marker distance from the camera.
     - Pixel offset of the marker’s center from the image center.
