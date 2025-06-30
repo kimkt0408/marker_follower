@@ -57,7 +57,7 @@ A Python-based system for detecting ArUco markers in images or video, and comput
 
 **How to run:**
 
-```
+```bash
 python3 run.py
 ```
 
@@ -92,7 +92,7 @@ A ROS wrapper of `marker_detector.py`
 
 **How to run:**
 
-```
+```bash
 rosrun marker_follower marker_follower_ros.py
 ```
 
@@ -114,6 +114,7 @@ rosrun marker_follower marker_follower_ros.py
 ### 2. Test with Your Own Videos
 
 - Record your own ArUco marker footage.
+- Record multiple videos at ACRE to see if the detection performance degrades in the field or not.
 - Save the video in the `examples/` folder or Modify the video path.
 - Update the `video_path` in `run.py`:
 
@@ -152,7 +153,3 @@ rosrun marker_follower marker_follower_ros.py
   - Track multiple IDs simultaneously.
   - Use different control strategies per ID.
   - Stop or switch targets if the desired marker disappears.
-
-### 6. Add Logging or Data Collection
-
-- Record multiple videos at ACRE to see if the detection performance degrades in the field or not.
